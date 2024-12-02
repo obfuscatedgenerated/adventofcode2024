@@ -19,12 +19,14 @@ report: for (const line of lines) {
     const levels = level_strs.map(str => Number.parseInt(str));
 
     let direction = Direction.UNDECIDED;
+    let dampened = false;
 
-    for (let idx = 1; idx < levels.length; idx++) {
+    let end = levels.length;
+    for (let idx = 1; idx < end; idx++) {
         const prev_level = levels[idx - 1];
         const curr_level = levels[idx];
 
-        if (idx == 1) {
+        if (idx === 1) {
             // determine direction
             if (curr_level < prev_level) {
                 direction = Direction.DECREASING;
@@ -32,7 +34,15 @@ report: for (const line of lines) {
                 direction = Direction.INCREASING;
             } else {
                 // unsafe
-                continue report;
+                if (dampened) {
+                    continue report;
+                } else {
+                    dampened = true;
+                    levels.splice(idx, 1);
+                    idx = 0;
+                    end--;
+                    continue;
+                }
             }
         } else {
             // check direction
@@ -42,7 +52,13 @@ report: for (const line of lines) {
                 || (direction === Direction.INCREASING && curr_level < prev_level)
             ) {
                 // unsafe
-                continue report;
+                if (dampened) {
+                    continue report;
+                } else {
+                    dampened = true;
+                    levels.splice(idx, 1);
+                    continue;
+                }
             }
         }
 
@@ -50,7 +66,15 @@ report: for (const line of lines) {
 
         if (level_diff < 1 || level_diff > 3) {
             // unsafe
-            continue report;
+            if (dampened) {
+                continue report;
+            } else {
+                dampened = true;
+                levels.splice(idx, 1);
+                idx = 0;
+                end--;
+                continue;
+            }
         }
     }
 
