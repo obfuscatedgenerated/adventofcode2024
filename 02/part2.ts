@@ -1,3 +1,8 @@
+// this doesnt work because the point we catch the error might not be the one to remove to fix it!
+// e.g.  6 1 2 3 4
+// removing 6 fixes it but the code would remove the 1
+// could be done with clever code / brute force, i'll come back to it
+
 import * as fs from "node:fs";
 
 const data = fs.readFileSync("input.txt", "utf8");
