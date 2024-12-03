@@ -9,17 +9,9 @@ enum Direction {
     DECREASING
 }
 
-let safe_reports = 0;
-report: for (const line of lines) {
-    if (line === "") {
-        continue;
-    }
-
-    const level_strs = line.split(" ");
-    const levels = level_strs.map(str => Number.parseInt(str));
-
+// returns index of failure, or -1 if safe
+const is_safe = (levels: number[]) => {
     let direction = Direction.UNDECIDED;
-    let dampened = false;
 
     let end = levels.length;
     for (let idx = 1; idx < end; idx++) {
@@ -34,15 +26,7 @@ report: for (const line of lines) {
                 direction = Direction.INCREASING;
             } else {
                 // unsafe
-                if (dampened) {
-                    continue report;
-                } else {
-                    dampened = true;
-                    levels.splice(idx, 1);
-                    idx = 0;
-                    end--;
-                    continue;
-                }
+                return idx;
             }
         } else {
             // check direction
@@ -52,13 +36,7 @@ report: for (const line of lines) {
                 || (direction === Direction.INCREASING && curr_level < prev_level)
             ) {
                 // unsafe
-                if (dampened) {
-                    continue report;
-                } else {
-                    dampened = true;
-                    levels.splice(idx, 1);
-                    continue;
-                }
+                return idx;
             }
         }
 
@@ -66,20 +44,41 @@ report: for (const line of lines) {
 
         if (level_diff < 1 || level_diff > 3) {
             // unsafe
-            if (dampened) {
-                continue report;
-            } else {
-                dampened = true;
-                levels.splice(idx, 1);
-                idx = 0;
-                end--;
-                continue;
-            }
+            return idx;
         }
     }
 
     // safe!
-    safe_reports++;
+    return -1;
 }
+
+let safe_reports = 0;
+const backtrack: number[][] = [];
+
+for (const line of lines) {
+    if (line === "") {
+        continue;
+    }
+
+    const level_strs = line.split(" ");
+    const levels = level_strs.map(str => Number.parseInt(str));
+
+    const fail_idx = is_safe(levels);
+    if (fail_idx === -1) {
+        safe_reports++;
+    } else {
+        // backtracking by deleting unsafe one and trying again
+        levels.splice(fail_idx, 1);
+        backtrack.push(levels);
+    }
+}
+
+// consume backtrack, with no fallback this time
+backtrack.forEach((levels) => {
+    const fail_idx = is_safe(levels);
+    if (fail_idx === -1) {
+        safe_reports++;
+    }
+});
 
 console.log(safe_reports);

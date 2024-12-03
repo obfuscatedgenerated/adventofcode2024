@@ -9,22 +9,15 @@ enum Direction {
     DECREASING
 }
 
-let safe_reports = 0;
-report: for (const line of lines) {
-    if (line === "") {
-        continue;
-    }
-
-    const level_strs = line.split(" ");
-    const levels = level_strs.map(str => Number.parseInt(str));
-
+const is_safe = (levels: number[]) => {
     let direction = Direction.UNDECIDED;
 
-    for (let idx = 1; idx < levels.length; idx++) {
+    let end = levels.length;
+    for (let idx = 1; idx < end; idx++) {
         const prev_level = levels[idx - 1];
         const curr_level = levels[idx];
 
-        if (idx == 1) {
+        if (idx === 1) {
             // determine direction
             if (curr_level < prev_level) {
                 direction = Direction.DECREASING;
@@ -32,7 +25,7 @@ report: for (const line of lines) {
                 direction = Direction.INCREASING;
             } else {
                 // unsafe
-                continue report;
+                return false;
             }
         } else {
             // check direction
@@ -42,7 +35,7 @@ report: for (const line of lines) {
                 || (direction === Direction.INCREASING && curr_level < prev_level)
             ) {
                 // unsafe
-                continue report;
+                return false;
             }
         }
 
@@ -50,12 +43,27 @@ report: for (const line of lines) {
 
         if (level_diff < 1 || level_diff > 3) {
             // unsafe
-            continue report;
+            return false;
         }
     }
 
     // safe!
-    safe_reports++;
+    return true;
+}
+
+let safe_reports = 0;
+
+for (const line of lines) {
+    if (line === "") {
+        continue;
+    }
+
+    const level_strs = line.split(" ");
+    const levels = level_strs.map(str => Number.parseInt(str));
+
+    if (is_safe(levels)) {
+        safe_reports++;
+    }
 }
 
 console.log(safe_reports);
