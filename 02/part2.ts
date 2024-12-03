@@ -1,7 +1,4 @@
-// this doesnt work because the point we catch the error might not be the one to remove to fix it!
-// e.g.  6 1 2 3 4
-// removing 6 fixes it but the code would remove the 1
-// could be done with clever code / brute force, i'll come back to it
+// i made weird choices because i had to keep changing approach
 
 import * as fs from "node:fs";
 
@@ -58,7 +55,9 @@ const is_safe = (levels: number[]) => {
 }
 
 let safe_reports = 0;
-const backtrack: number[][] = [];
+
+// key is the line it originated from as they need to be grouped, value is a list of lists (levels)
+const backtrack: { [key: string]: number[][] } = {};
 
 for (const line of lines) {
     if (line === "") {
@@ -72,18 +71,32 @@ for (const line of lines) {
     if (fail_idx === -1) {
         safe_reports++;
     } else {
-        // backtracking by deleting unsafe one and trying again
-        levels.splice(fail_idx, 1);
-        backtrack.push(levels);
+        if (!backtrack[line]) {
+            backtrack[line] = [];
+        }
+
+        // generate all possible backtracks
+        // this is brute force and could be done smarter, but i don't care much
+        // reasoning:
+        // e.g.  6 1 2 3 4
+        // removing 6 fixes it but the old code would remove the 1
+        for (let idx = 0; idx < levels.length; idx++) {
+            const new_levels = levels.slice();
+            new_levels.splice(idx, 1);
+            backtrack[line].push(new_levels);
+        }
     }
 }
 
 // consume backtrack, with no fallback this time
-backtrack.forEach((levels) => {
-    const fail_idx = is_safe(levels);
-    if (fail_idx === -1) {
-        safe_reports++;
+for (const line in backtrack) {
+    // check that ONE of the lists under the key is safe. do not check all
+    for (const levels of backtrack[line]) {
+        if (is_safe(levels) === -1) {
+            safe_reports++;
+            break;
+        }
     }
-});
+}
 
 console.log(safe_reports);
