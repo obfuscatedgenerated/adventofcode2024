@@ -1,5 +1,3 @@
-// needs fixing, too low
-
 import * as fs from "node:fs";
 
 const data = fs.readFileSync("input.txt", "utf8");
@@ -14,7 +12,7 @@ enum State {
 let sum = 0;
 let state = State.NORMAL;
 
-let enabled = false;
+let enabled = true;
 
 let param_1_str = "";
 let param_2_str = "";
@@ -54,6 +52,9 @@ for (let idx = 3; idx < chars.length; idx++) {
                 if (param_1_str.length === 0) {
                     // if we havent consumed any numbers yet, reset to normal (invalid)
                     state = State.NORMAL;
+
+                    // backtrack
+                    idx--;
                 } else {
                     // move to consuming param 2
                     state = State.CONSUMING_PARAM_2;
@@ -63,6 +64,9 @@ for (let idx = 3; idx < chars.length; idx++) {
             } else {
                 // invalid
                 state = State.NORMAL;
+
+                // backtrack (including invalid char)
+                idx -= param_1_str.length + 1;
             }
 
             break;
@@ -81,6 +85,10 @@ for (let idx = 3; idx < chars.length; idx++) {
                     if (Number.isNaN(param_1) || Number.isNaN(param_2)) {
                         // invalid
                         state = State.NORMAL;
+
+                        // backtrack (include ) and ,)
+                        idx -= param_1_str.length + param_2_str.length + 2;
+
                         break;
                     }
 
@@ -92,6 +100,9 @@ for (let idx = 3; idx < chars.length; idx++) {
             } else {
                 // invalid
                 state = State.NORMAL;
+
+                // backtrack (include param 1 and invalid char)
+                idx -= param_1_str.length + param_2_str.length + 1;
             }
 
             break;
